@@ -1,0 +1,69 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "/common/navbar.json",
+    "description": "Page top navigation bar configurations",
+    "type": "object",
+    "properties": {
+        "sticky": {
+            "type": ["boolean", "string"],
+            "description": "Whether the navigation bar stays at the top of the window when the page scrolls. true for all screen widths, \"mobile\" for screens narrower than 769px only, false to scroll it away with the page",
+            "enum": [false, true, "mobile"],
+            "default": false
+        },
+        "menu": {
+            "type": "object",
+            "description": "Navigation menu items",
+            "patternProperties": {
+                ".+": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "URL or path of the menu link"
+                        },
+                        {
+                            "type": "object",
+                            "description": "Sub-menu: names of its links mapped to their URLs or paths",
+                            "patternProperties": {
+                                ".+": {
+                                    "type": "string",
+                                    "description": "URL or path of the sub-menu link"
+                                }
+                            },
+                            "minProperties": 1
+                        }
+                    ]
+                }
+            },
+            "examples": [
+                {
+                    "Home": "/",
+                    "Archives": "/archives",
+                    "Categories": "/categories",
+                    "Tags": "/tags",
+                    "About": "/about"
+                },
+                {
+                    "Home": "/",
+                    "Archives": "/archives",
+                    "About": {
+                        "Trademark": "/about/trademark/",
+                        "Enterprise": "/about/enterprise/"
+                    }
+                }
+            ],
+            "nullable": true
+        },
+        "links": {
+            "$ref": "/misc/poly_links.json",
+            "description": "Links to be shown on the right of the navigation bar",
+            "examples": [
+                {
+                    "Download on GitHub": {
+                        "icon": "fab fa-github",
+                        "url": "https://github.com/ppoffice/hexo-theme-icarus"
+                    }
+                }
+            ]
+        }
+    }
+}

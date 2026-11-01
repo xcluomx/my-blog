@@ -1,0 +1,344 @@
+/* ---------------------------------
+ *           Top Navigation
+ * --------------------------------- */
+$navbar-item-padding-v ?= 1.25rem
+$navbar-item-padding-h ?= .75rem
+$navbar-item-margin-v ?= 0
+$navbar-item-margin-h ?= 0
+$navbar-dropdown-gap ?= .25rem
+$navbar-dropdown-padding-h ?= 0
+$navbar-dropdown-shadow ?= $card-shadow
+$navbar-dropdown-item-padding-h ?= 1rem
+$navbar-dropdown-item-muted-color ?= darken($grey, 10%)
+
+.navbar-main
+    box-shadow: $shadow
+
+    .navbar-container
+        overflow-x: auto
+
+    .navbar-menu, .navbar-start, .navbar-end
+        align-items: stretch
+        display: flex
+        padding: 0
+        flex-shrink: 0
+
+    .navbar-menu
+        flex-grow: 1
+        flex-shrink: 0
+        overflow-x: auto
+
+    .navbar-start
+        justify-content: flex-start
+        margin-right: auto
+
+    .navbar-end
+        justify-content: flex-end
+        margin-left: auto
+
+    .navbar-item
+        display: flex
+        align-items: center
+        padding: $navbar-item-padding-v $navbar-item-padding-h
+        margin: $navbar-item-margin-v $navbar-item-margin-h
+
+        &.is-active
+            background-color: transparent
+
+    // Icon buttons (table of contents, search) look and behave like the navbar links
+    button.navbar-item
+        border: none
+        background: none
+        font: inherit
+        color: $navbar-item-color
+        cursor: pointer
+
+        &:focus, &:hover
+            background-color: $navbar-item-hover-background-color
+            color: $navbar-item-hover-color
+
+    // source/js/main.js folds the menu links into a drop-down below the other navbar items
+    // when they do not fit on one line. Without JavaScript, the menu scrolls horizontally.
+    .navbar-toggle
+        display: none
+
+        &[aria-expanded="true"]
+            color: $navbar-item-active-color
+
+    &.is-collapsed
+        .navbar-menu
+            flex-wrap: wrap
+            flex-shrink: 1
+            min-width: 0
+
+        .navbar-toggle
+            display: flex
+
+        .navbar-start
+            display: none
+            order: 1
+            flex-basis: 100%
+            flex-direction: column
+            align-items: center
+            margin: 0
+            padding-bottom: .5rem
+
+            .navbar-item
+                margin: 0
+                padding: .5rem $navbar-item-padding-h
+
+    &.is-collapsed.is-open .navbar-start
+        display: flex
+
+    // Sub-menus: a button (.navbar-link) followed by its links (.navbar-dropdown). Without
+    // JavaScript, the links show next to the button while it is hovered or focused, in the
+    // horizontally scrolling menu. source/js/main.js (.is-scripted) opens them with the button,
+    // as a drop-down below it, or under it in the folded menu.
+    .navbar-item.has-dropdown
+        align-items: stretch
+        margin: 0
+        padding: 0
+
+    // The button looks like the other menu links, with a chevron pointing up when open.
+    .navbar-item.has-dropdown .navbar-link
+        display: flex
+        align-items: center
+        margin: $navbar-item-margin-v $navbar-item-margin-h
+        padding: $navbar-item-padding-v $navbar-item-padding-h
+        border: none
+        background-color: transparent
+        font: inherit
+        line-height: 1.5
+        color: $navbar-item-color
+        cursor: pointer
+
+        &::after
+            position: static
+            display: inline-block
+            flex-shrink: 0
+            width: .4em
+            height: .4em
+            margin: 0 0 0 .5em
+            border: solid currentColor
+            border-width: 0 1.5px 1.5px 0
+            border-radius: 0
+            transform: translateY(-25%) rotate(45deg)
+            transition: transform .2s ease
+
+        &[aria-expanded="true"]::after
+            transform: translateY(25%) rotate(225deg)
+
+        &:hover
+            color: $navbar-item-hover-color
+
+        &.is-active
+            color: $navbar-item-active-color
+
+    @media (prefers-reduced-motion: reduce)
+        .navbar-item.has-dropdown .navbar-link::after
+            transition: none
+
+    .navbar-dropdown
+        display: none
+        position: static
+        min-width: 0
+        padding: 0
+        font-size: inherit
+        background: none
+        border: none
+        border-radius: 0
+        box-shadow: none
+
+        a.navbar-item
+            &:hover
+                color: $navbar-item-hover-color
+
+            &.is-active
+                background-color: transparent
+                color: $navbar-item-active-color
+
+    &:not(.is-scripted) .navbar-item.has-dropdown
+        &:hover, &:focus-within
+            .navbar-dropdown
+                display: flex
+
+    &.is-scripted
+        // The menu is fitted with its drop-downs closed, so that opening one cannot fold it.
+        &.is-measuring .navbar-dropdown
+            display: none !important
+
+        // Do not clip the drop-downs: the menu only scrolls if it still does not fit once folded.
+        &:not(.is-scrolling)
+            .navbar-container, .navbar-menu
+                overflow: visible
+
+    // A card below the button, its link names aligned with the button name
+    &.is-scripted:not(.is-collapsed)
+        .navbar-dropdown
+            position: absolute
+            top: 100%
+            left: $navbar-item-margin-h + $navbar-item-padding-h - $navbar-dropdown-padding-h - $navbar-dropdown-item-padding-h
+            z-index: $navbar-dropdown-z
+            min-width: unquote('max(100%, 10rem)')
+            width: max-content
+            max-width: calc(100vw - 2rem)
+            margin-top: $navbar-dropdown-gap
+            padding: .5rem $navbar-dropdown-padding-h
+            background-color: $navbar-background-color
+            border-radius: $radius
+            box-shadow: $navbar-dropdown-shadow
+
+            // Bridge the gap, so that the mouse keeps it open on its way down to the links.
+            &::before
+                content: ''
+                position: absolute
+                left: 0
+                right: 0
+                bottom: 100%
+                height: $navbar-dropdown-gap
+
+            .navbar-item
+                margin: 0
+                padding: .5rem $navbar-dropdown-item-padding-h
+                white-space: normal
+                overflow-wrap: anywhere
+
+            a.navbar-item:hover
+                background-color: $navbar-dropdown-item-hover-background-color
+                color: $navbar-item-color
+
+            a.navbar-item.is-active
+                color: $navbar-item-active-color
+
+        .navbar-link[aria-expanded="true"] + .navbar-dropdown
+            display: block
+
+        // Above the sticky columns (z-index: 99) while a drop-down is open, under the overlays.
+        &.is-dropdown-open
+            z-index: 100
+
+        @media (hover: hover) and (pointer: fine)
+            &:hover
+                z-index: 100
+
+            .navbar-item.has-dropdown:not(.is-hover-closed):hover .navbar-dropdown
+                display: block
+
+    // In the folded menu, the links of an open sub-menu follow its button in the column, dimmed.
+    &.is-collapsed .navbar-start
+        .navbar-item.has-dropdown
+            flex-direction: column
+            align-items: center
+            padding: 0
+
+        .navbar-item.has-dropdown .navbar-link
+            margin: 0
+            padding: .5rem $navbar-item-padding-h
+
+        .navbar-link[aria-expanded="true"] + .navbar-dropdown
+            display: flex
+            flex-direction: column
+            align-items: center
+            padding-bottom: .25rem
+
+            a.navbar-item
+                padding: .25rem $navbar-item-padding-h
+                color: $navbar-dropdown-item-muted-color
+
+                &:hover
+                    color: $navbar-item-hover-color
+
+                &.is-active
+                    color: $navbar-item-active-color
+
+    +from($navbar-breakpoint)
+        &.is-collapsed
+            .navbar-brand
+                align-self: flex-start
+
+            .navbar-toggle
+                margin-left: auto
+
+            .navbar-end
+                margin-left: 0
+
+    +until($navbar-breakpoint)
+        .navbar-menu
+            justify-content: center
+            box-shadow: none
+
+        .navbar-start
+            margin-right: 0
+
+        .navbar-end
+            margin-left: 0
+
+/* ---------------------------------
+ *           Sticky Navbar
+ * --------------------------------- */
+// The height of the navbar with its folded menu closed, until source/js/main.js measures it into
+// --navbar-height: the logo and the padding of the navbar items, and below the navbar breakpoint,
+// the row of the menu and the icons under the logo.
+$navbar-sticky-height ?= $logo-height + 2 * $navbar-item-padding-v
+$navbar-sticky-height-touch ?= $navbar-sticky-height + 1.5rem + 2 * $navbar-item-padding-v
+
+:root
+    --navbar-height: $navbar-sticky-height
+
++until($navbar-breakpoint)
+    :root
+        --navbar-height: $navbar-sticky-height-touch
+
+// navbar.sticky (layout/common/navbar.jsx): the navbar stays at the top of the window at all widths
+// (data-sticky="all") or on mobile screens only ("mobile"). It keeps its place in the page, so that
+// the content does not move when it sticks, and source/js/main.js opens its folded menu over the
+// page. Anchors and table of contents entries scroll below it.
+navbar-sticky($sticky)
+    .navbar-main[data-sticky={$sticky}]
+        position: -webkit-sticky
+        position: sticky
+        top: 0
+        // Above the content, under the table of contents, its mask (z-index: 99) and the search
+        // box (z-index: 100), which come later in the page.
+        z-index: 99
+
+        // An open folded menu taller than the window scrolls instead of going past its bottom.
+        &.is-open
+            max-height: 100vh
+            max-height: 100dvh
+            overflow-y: auto
+
+    // The anchors of the page scroll below it. Not a scroll padding of the page, which would also
+    // cover the navbar: Chrome would then scroll the page each time an element of the navbar gets
+    // the focus (source/js/main.js keeps the focused elements of the page out from under it).
+    // !important overrides the scroll margin that the table of contents (toc.js) sets on the
+    // headings, which it keeps.
+    .navbar-main[data-sticky={$sticky}] ~ * [id]
+        scroll-margin-top: unquote('calc(var(--navbar-height) + 1em) !important')
+
++mobile()
+    navbar-sticky('"mobile"')
+
+navbar-sticky('"all"')
+
++tablet()
+    // Above the sticky columns (z-index: 99) that scroll past it when taller than the window.
+    .navbar-main[data-sticky="all"]
+        z-index: 100
+
+    // The sticky columns stick below it (include/style/responsive.styl).
+    .navbar-main[data-sticky="all"] ~ .section
+        .is-sticky
+            top: calc(var(--navbar-height) + 1.5rem)
+
+        .column-main, .column-left, .column-right, .column-right-shadow
+            &.is-sticky
+                top: calc(var(--navbar-height) + .75rem)
+
+.navbar-logo
+    img
+        max-height: $logo-height
+
+@media screen and (min-width: $desktop)
+    .navbar > .container .navbar-menu, .container > .navbar .navbar-menu
+        margin-right: 0rem

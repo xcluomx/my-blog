@@ -1,0 +1,29 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (e.g. 6.2.0)
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      # No registry-url: it makes setup-node set a placeholder NODE_AUTH_TOKEN, which npm falls
+      # back to when the trusted publishing (OIDC) exchange fails, hiding the real error.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # Trusted publishing needs npm 11.5.1 or later
+      - run: npm install -g npm@latest
+      - run: npm publish

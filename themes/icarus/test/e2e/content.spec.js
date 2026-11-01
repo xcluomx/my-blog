@@ -1,0 +1,84 @@
+const { test, expect } = require('./fixtures');
+
+test.describe('images and tables', () => {
+    test.beforeEach(async ({ visit }) => {
+        await visit('/2024/02/10/images-and-tables/');
+    });
+
+    test('content images become gallery links with a caption from the alt text', async ({ page }) => {
+        const image = page.locator('.article img[alt="Fixture avatar"]');
+        const link = page.locator('.article a.gallery-item:has(img[alt="Fixture avatar"])');
+        await expect(link).toHaveAttribute('href', '/img/avatar.png');
+        await expect(image.locator('xpath=following-sibling::p[contains(@class, "caption")]')).toHaveText('Fixture avatar');
+    });
+
+    test('images that are already links are not wrapped again', async ({ page }) => {
+        const image = page.locator('.article img[alt="Linked image"]');
+        await expect(image.locator('xpath=..')).toHaveAttribute('href', 'https://example.com/');
+        await expect(image.locator('xpath=..')).not.toHaveClass(/gallery-item/);
+    });
+
+    test('images with .not-gallery-item are left alone', async ({ page }) => {
+        await expect(page.locator('.article a.gallery-item:has(img.not-gallery-item)')).toHaveCount(0);
+    });
+
+    test('wide tables get a horizontal scroll wrapper, narrow ones do not', async ({ page }) => {
+        const tables = page.locator('.article > .content table');
+        await expect(tables).toHaveCount(2);
+        await expect(page.locator('.table-overflow table')).toHaveCount(1);
+        await expect(page.locator('.table-overflow table th').first()).toHaveText('Column one');
+    });
+});
+
+test.describe('image alt text', () => {
+    test('is shown as text in captions, never parsed as HTML', async ({ page, visit, diagnostics }) => {
+        await visit('/2023/10/01/image-alt-html/');
+        const captions = page.locator('.article p.caption');
+        await expect(captions).toHaveText(['<img src=x onerror=window.__icarusInjected=1>', 'a < b & "c"']);
+        await expect(page.locator('.article p.caption img')).toHaveCount(0);
+        expect(await page.evaluate(() => window.__icarusInjected)).toBeUndefined();
+        expect(diagnostics.failedRequests).toEqual([]);
+    });
+
+    test('keeps the image URL intact in the gallery link', async ({ page, visit }) => {
+        await visit('/2023/10/01/image-alt-html/');
+        const links = page.locator('.article a.gallery-item');
+        await expect(links).toHaveCount(2);
+        for (const link of await links.all()) {
+            await expect(link).toHaveAttribute('href', '/img/avatar.png');
+        }
+    });
+});
+
+test.describe('lazily loaded images', () => {
+    const loaded = locator => locator.evaluate(img => img.complete && img.naturalWidth > 0);
+
+    test('the archive thumbnails are loaded when they are scrolled to', async ({ page, visit, diagnostics }) => {
+        await page.setViewportSize({ width: 1280, height: 200 });
+        await visit('/archives/2023/');
+        const thumbnail = page.locator('.timeline .media-left img[src="/img/avatar.png"]');
+        await expect(thumbnail).toHaveAttribute('loading', 'lazy');
+        await thumbnail.scrollIntoViewIfNeeded();
+        await expect.poll(() => loaded(thumbnail)).toBe(true);
+        expect(diagnostics.failedRequests).toEqual([]);
+    });
+
+    test('the first cover of an index page is loaded right away', async ({ page, visit }) => {
+        await visit('/page/2/');
+        const cover = page.locator('.card-image img').first();
+        await expect(cover).toHaveAttribute('fetchpriority', 'high');
+        expect(await loaded(cover)).toBe(true);
+    });
+
+    test('the thumbnails of a page switched to by PJAX are loaded', async ({ page, visit }) => {
+        await visit('/', { variant: 'pjax' });
+        await page.evaluate(() => { window.__noFullReload = true; });
+        const done = page.evaluate(() => new Promise(resolve => document.addEventListener('pjax:complete', resolve, { once: true })));
+        await page.locator('.column-right a[href="/archives/2023/11/"]').first().click();
+        await done;
+        const thumbnail = page.locator('.timeline .media-left img[src="/img/avatar.png"]');
+        await thumbnail.scrollIntoViewIfNeeded();
+        await expect.poll(() => loaded(thumbnail)).toBe(true);
+        expect(await page.evaluate(() => window.__noFullReload)).toBe(true);
+    });
+});

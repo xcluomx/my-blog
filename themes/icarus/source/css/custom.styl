@@ -1,0 +1,165 @@
+/*
+ * 星罗杂记 - 门户风格自定义样式
+ * 放置位置：themes/icarus/source/css/custom.styl
+ * 仅覆盖视觉样式，不修改文章数据和 JSX 模板。
+ */
+
+/* 页面基础 */
+html,
+body
+    background: #f3f6fa
+    color: #263445
+
+body
+    min-height: 100vh
+
+/* 页面宽度与三栏比例 */
+@media screen and (min-width: 1216px)
+    .container
+        max-width: 1200px !important
+        width: 1200px !important
+
+    .section
+        padding-top: 1.5rem
+        padding-bottom: 2rem
+
+    .columns
+        display: flex
+        align-items: flex-start
+        gap: 18px
+
+    .columns > .column-main
+        flex: 0 0 calc(53% - 12px) !important
+        width: calc(53% - 12px) !important
+        max-width: calc(53% - 12px) !important
+        padding: 0 !important
+
+    .columns > .column-left
+        flex: 0 0 calc(18% - 12px) !important
+        width: calc(18% - 12px) !important
+        max-width: calc(18% - 12px) !important
+        padding: 0 !important
+
+    .columns > .column-right
+        flex: 1 1 0 !important
+        min-width: 0
+        padding: 0 !important
+
+/* 平板和较窄桌面：保留主题原有响应式行为 */
+@media screen and (min-width: 769px) and (max-width: 1215px)
+    .section
+        padding-top: 1.25rem
+
+    .columns
+        column-gap: 1rem
+
+/* 顶部导航 */
+.navbar.navbar-main
+    background: #ffffff
+    border-bottom: 1px solid #e8edf4
+    box-shadow: 0 2px 10px rgba(31, 55, 80, 0.045)
+
+.navbar.navbar-main .navbar-container
+    max-width: 1200px
+
+.navbar.navbar-main .navbar-item
+    color: #40536a
+    font-weight: 500
+    transition: color .18s ease, background .18s ease
+
+.navbar.navbar-main .navbar-item:hover,
+.navbar.navbar-main .navbar-item.is-active
+    color: #2878df
+    background: #f0f6ff
+
+.navbar.navbar-main .navbar-logo
+    color: #1d3553
+    font-weight: 700
+
+/* 左右侧栏挂件卡片 */
+.column-left > *,
+.column-right > *
+    background: #ffffff
+    border: 1px solid #edf1f6
+    border-radius: 12px
+    box-shadow: 0 4px 16px rgba(31, 55, 80, 0.045)
+    margin-bottom: 16px
+    overflow: hidden
+
+.column-left .widget,
+.column-right .widget
+    padding: 16px
+
+.column-left .widget:first-child,
+.column-right .widget:first-child
+    margin-top: 0
+
+/* 中间文章卡片 */
+.column-main article,
+.column-main .article,
+.column-main .card
+    background: #ffffff
+    border: 1px solid #edf1f6
+    border-radius: 12px
+    box-shadow: 0 4px 18px rgba(31, 55, 80, 0.045)
+    overflow: hidden
+    margin-bottom: 18px
+
+.column-main article,
+.column-main .article
+    padding: 20px
+
+.column-main a
+    transition: color .18s ease
+
+.column-main a:hover
+    color: #2878df
+
+/* 标题与分隔线 */
+.widget .menu-label,
+.widget .title,
+.column-main .title
+    color: #233b58
+
+.widget hr,
+.column-main hr
+    background-color: #edf1f6
+
+/* 按钮与分页 */
+.button.is-primary,
+.pagination-link.is-current
+    background-color: #2878df
+    border-color: #2878df
+    color: #ffffff
+
+.button.is-primary:hover,
+.pagination-link.is-current:hover
+    background-color: #1767ce
+    border-color: #1767ce
+
+/* 图片统一圆角 */
+.column-left img,
+.column-right img,
+.column-main img
+    border-radius: 8px
+
+/* 页脚 */
+.footer
+    background: transparent
+    color: #8391a3
+    padding-top: 1.5rem
+
+/* 手机端：不强行固定宽度，不改变原主题的单栏堆叠 */
+@media screen and (max-width: 768px)
+    .section
+        padding: 1rem .75rem
+
+    .column-main article,
+    .column-main .article,
+    .column-main .card
+        border-radius: 10px
+        margin-bottom: 14px
+
+    .column-main article,
+    .column-main .article
+        padding: 16px

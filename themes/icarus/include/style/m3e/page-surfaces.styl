@@ -1,0 +1,407 @@
+// 8. Timeline
+
+html .timeline
+    border-left: 2px solid var(--m3-outline-variant)
+
+html .timeline .media
+    border: none
+    border-radius: var(--m3-r-l)
+    padding: .6rem .75rem
+    margin-top: 2px
+    transition: background-color var(--m3-spring-effects-ms) var(--m3-spring-effects)
+
+html .timeline .media:hover
+    background-color: var(--m3-surface-container-high)
+
+html .timeline .media::before
+    background: var(--m3-primary) !important
+    border: none !important
+    border-radius: 0 !important
+    width: 14px !important
+    height: 14px !important
+    m3e-mask(var(--m3-shape-cookie6))
+    transition: transform var(--m3-spring-fast-ms) var(--m3-spring-fast)
+
+html .timeline .media:hover::before
+    transform: rotate(45deg) scale(1.3)
+
+html .timeline .media .date
+    font-family: var(--m3-font-mono)
+    color: var(--m3-on-surface-variant)
+
+html .card .card-content > h3.tag, html .card-content .tag.is-medium
+    background-color: var(--m3-primary)
+    color: var(--m3-on-primary)
+    font-family: var(--m3-font)
+    font-weight: 800
+
+// 9. Article footer
+
+html .article-licensing
+    background: var(--m3-surface-container)
+    color: var(--m3-on-surface)
+    border-radius: var(--m3-r-l-plus)
+    box-shadow: none
+
+    &:after
+        color: var(--m3-primary)
+        opacity: .1
+
+    .licensing-title a
+        color: var(--m3-on-surface-variant) !important
+
+    .licensing-meta h6
+        color: var(--m3-on-surface-variant)
+
+html .article-tags
+    align-items: center
+    gap: 8px
+
+    > .mr-2
+        margin-right: 0 !important
+
+    > span
+        display: inline-flex
+        align-items: center
+        height: 30px
+        color: var(--m3-on-surface-variant)
+
+    .link-muted
+        display: inline-flex
+        align-items: center
+        height: 30px
+        padding: 0 10px
+        border-radius: var(--m3-r-s)
+        background: var(--m3-surface-container)
+        color: var(--m3-on-surface)
+        font-size: .8125rem
+        font-weight: 500
+        transition: var(--m3-state-transition)
+
+        &:hover
+            border-radius: 15px
+            background: var(--m3-secondary-container)
+            color: var(--m3-on-secondary-container) !important
+
+html .post-navigation
+    gap: 12px
+
+html .post-navigation .article-nav-prev, html .post-navigation .article-nav-next
+    padding: .75rem 1.25rem
+    border-radius: var(--m3-r-l)
+    background: var(--m3-secondary-container)
+    color: var(--m3-on-secondary-container)
+    font-weight: 600
+    transition: var(--m3-state-transition)
+
+html .post-navigation .article-nav-prev:hover, html .post-navigation .article-nav-next:hover
+    border-radius: var(--m3-r-xl)
+    background: var(--m3-primary)
+    color: var(--m3-on-primary) !important
+
+// The base theme colors the label span independently from the link.
+
+html .post-navigation a .level-item
+    color: inherit
+
+html .donate .qrcode
+    background: var(--m3-surface-container-lowest)
+    border-radius: var(--m3-r-l)
+    padding: 8px
+    box-shadow: var(--m3-elev-3)
+
+html .donate .qrcode img
+    display: block
+    max-width: unquote('min(280px, 65vw)')
+    border-radius: var(--m3-r-s)
+
+html .card:has(.donate)
+    overflow: visible
+
+// 10. Footer, back-to-top, search and cookie consent
+
+html .footer
+    background-color: var(--m3-surface-container)
+    color: var(--m3-on-surface-variant)
+
+html .footer a
+    color: var(--m3-on-surface-variant)
+
+html .footer a:hover
+    color: var(--m3-primary)
+
+html .footer .level-end .field.has-addons
+    flex-wrap: wrap
+    gap: 8px
+
+html .footer .level-end .field.has-addons .control
+    margin: 0
+
+html .footer .level-end .field.has-addons .control .button
+    height: 44px
+    min-width: 44px
+    padding: 0 .8em
+    border: none
+    border-radius: var(--m3-r-m)
+    background: var(--m3-surface-container)
+    color: var(--m3-on-surface-variant)
+    font-size: 1rem
+    box-shadow: none
+
+html .footer .level-end .field.has-addons .control .button:is(:hover, :focus-visible)
+    border-radius: 22px
+    background: var(--m3-secondary-container)
+    color: var(--m3-on-secondary-container)
+
+// Content is below 99; search/TOC overlays start at 100.
+
+html #back-to-top
+    z-index: 99
+    background-color: var(--m3-tertiary-container)
+    color: var(--m3-on-tertiary-container)
+    border: none
+    border-radius: var(--m3-r-l)
+    box-shadow: none
+    width: 56px !important
+    height: 56px
+    padding: 0
+    overflow: hidden
+    transition: opacity .4s ease, transform .4s ease, var(--m3-state-transition)
+
+    &.is-rounded
+        border-radius: var(--m3-r-l)
+
+    &:hover
+        border-radius: 24px
+        background: var(--m3-tertiary)
+        color: var(--m3-on-tertiary)
+
+html .searchbox-google
+    --search-result-text: var(--m3-on-surface)
+    --search-result-muted: var(--m3-on-surface-variant)
+    --search-result-link: var(--m3-primary)
+    --search-result-border: var(--m3-outline-variant)
+    --search-result-surface: var(--m3-surface-container)
+    --search-result-hover: var(--m3-surface-container-high)
+
+html .searchbox
+    background-color: var(--m3-scrim)
+
+    .searchbox-container
+        background-color: var(--m3-surface-container-high)
+        color: var(--m3-on-surface)
+        border: none
+        border-radius: var(--m3-r-xl)
+        box-shadow: var(--m3-elev-3)
+        overflow: hidden
+
+// Match the base search layout's edge-to-edge mobile/short-screen mode.
+
+@media screen and (max-width: 559px), screen and (max-height: 479px)
+    html .searchbox .searchbox-container
+        border-radius: 0
+        box-shadow: none
+
+html .searchbox
+    .searchbox-header, .searchbox-body
+        background: transparent
+        border-color: var(--m3-outline-variant)
+
+    .searchbox-header
+        align-items: center
+        padding: 8px
+        gap: 8px
+        transition: background-color 180ms ease
+
+        &:focus-within
+            background: var(--m3-primary-container)
+            color: var(--m3-on-primary-container)
+
+    .searchbox-input-container
+        min-width: 0
+
+    .searchbox-input
+        min-width: 0
+        width: 100%
+        height: 40px
+        padding: 0 .75em
+        background: transparent
+        color: var(--m3-on-surface)
+        font-size: 1.05rem
+
+        &::placeholder
+            color: var(--m3-on-surface-variant)
+
+    // An expanded M3 search surface highlights the header, not an outlined/underlined text field.
+    .searchbox-input
+        border: none
+        border-radius: var(--m3-r-m)
+        caret-color: var(--m3-primary)
+
+        &:focus
+            outline: none
+            background: transparent
+            box-shadow: none
+            color: var(--m3-on-primary-container)
+
+    .searchbox-close
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        flex: 0 0 40px
+        width: 40px
+        height: 40px
+        padding: 0
+        line-height: 1
+        color: var(--m3-on-surface-variant)
+        border-radius: var(--m3-r-m)
+        transition: var(--m3-state-transition)
+
+        &:hover
+            border-radius: 20px
+            background-color: unquote('color-mix(in oklab, var(--m3-on-surface) 8%, transparent)')
+
+    .searchbox-result-section header
+        color: var(--m3-on-surface-variant)
+        font-weight: 600
+        text-transform: none
+        border: none
+
+    .searchbox-result-section
+        border: none
+
+    .searchbox-result-item
+        margin: 2px .5rem
+        border: none
+        border-radius: var(--m3-r-s)
+        color: var(--m3-on-surface)
+        transition: var(--m3-state-transition)
+
+    .searchbox-result-item:not(.disabled):not(.active):not(:active):hover, .searchbox-result-item:active, .searchbox-result-item.active
+        border-radius: var(--m3-r-l)
+        background-color: var(--m3-surface-container-highest)
+        color: var(--m3-on-surface)
+
+    .searchbox-result-item em, .searchbox-result-item mark
+        background: var(--m3-tertiary-container)
+        color: var(--m3-on-tertiary-container)
+        font-style: normal
+        border-radius: 4px
+        padding: 0 2px
+
+    .searchbox-result-icon
+        color: var(--m3-primary)
+
+    .searchbox-result-preview, .searchbox-result-item:not(:active):not(.active) .searchbox-result-preview
+        color: var(--m3-on-surface-variant)
+
+    .searchbox-pagination
+        display: flex
+        flex-wrap: wrap
+        justify-content: center
+        gap: 2px
+
+        .searchbox-pagination-item
+            margin: 0
+
+        .searchbox-pagination-link
+            display: inline-flex
+            align-items: center
+            justify-content: center
+            height: 40px
+            min-width: 40px
+            padding: 0 .8em
+            border-radius: var(--m3-r-s)
+            background: var(--m3-secondary-container)
+            color: var(--m3-on-secondary-container)
+            box-shadow: none
+            font-weight: 600
+            transition: var(--m3-state-transition)
+
+        .searchbox-pagination-item:first-child .searchbox-pagination-link
+            border-radius: 20px var(--m3-r-s) var(--m3-r-s) 20px
+
+        .searchbox-pagination-item:last-child .searchbox-pagination-link
+            border-radius: var(--m3-r-s) 20px 20px var(--m3-r-s)
+
+        .searchbox-pagination-item:not(.active):not(.disabled) .searchbox-pagination-link:hover
+            border-radius: var(--m3-r-l)
+            background: var(--m3-secondary)
+            color: var(--m3-on-secondary)
+
+        .searchbox-pagination-item:first-child:not(.active):not(.disabled) .searchbox-pagination-link:hover
+            border-radius: 20px var(--m3-r-l) var(--m3-r-l) 20px
+
+        .searchbox-pagination-item:last-child:not(.active):not(.disabled) .searchbox-pagination-link:hover
+            border-radius: var(--m3-r-l) 20px 20px var(--m3-r-l)
+
+        .searchbox-pagination-item.active .searchbox-pagination-link
+            border-radius: 20px
+            background: var(--m3-primary)
+            color: var(--m3-on-primary)
+
+        .searchbox-pagination-item.disabled .searchbox-pagination-link
+            background: transparent
+            color: var(--m3-on-surface-variant)
+            opacity: .6
+
+// The plugin uses inline colors and !important.
+
+html body .cc-window.cc-window
+    background-color: var(--m3-inverse-surface) !important
+    color: var(--m3-inverse-on-surface) !important
+    border-radius: var(--m3-r-xl)
+    box-shadow: var(--m3-elev-3)
+    font-family: var(--m3-font)
+    overflow: hidden
+
+html body .cc-window .cc-link
+    color: var(--m3-inverse-on-surface) !important
+
+html body .cc-window .cc-compliance > .cc-btn
+    background-color: var(--m3-inverse-primary, var(--m3-primary-container)) !important
+    color: var(--m3-on-primary-container) !important
+    border: none !important
+    border-radius: var(--m3-r-m)
+    font-weight: 600
+    margin: 0 12px 12px
+    transition: var(--m3-state-transition)
+
+html body .cc-window .cc-compliance > .cc-btn:is(:hover, :focus-visible)
+    border-radius: 24px
+
+// Edgeless removes the vendor's container padding; inset actions from the rounded shell.
+html body .cc-window.cc-floating.cc-theme-edgeless .cc-compliance
+    box-sizing: border-box
+    gap: 12px
+    padding: 8px 24px 24px
+
+html body .cc-window.cc-floating.cc-theme-edgeless .cc-compliance > .cc-btn
+    margin: 0
+
+@supports (animation-timeline: scroll())
+    html .navbar-main[data-sticky]
+        animation: m3-bar linear both
+        animation-timeline: scroll(root)
+        animation-range: 0 96px
+    @keyframes m3-bar
+        to
+            background-color: var(--m3-surface-container)
+    html body:has(.card-content.article h1.title)::after
+        content: ""
+        position: fixed
+        left: 0
+        top: 0
+        z-index: 200
+        width: 100%
+        height: 3px
+        background: var(--m3-primary)
+        border-radius: 0 2px 2px 0
+        transform-origin: 0 50%
+        animation: m3-progress linear both
+        animation-timeline: scroll(root)
+    @keyframes m3-progress
+        from
+            transform: scaleX(0)
+        to
+            transform: scaleX(1)

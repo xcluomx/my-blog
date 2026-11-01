@@ -1,0 +1,377 @@
+const assert = require('assert').strict;
+const moment = require('moment');
+const { render, fixtureConfig, makePage, createHelper } = require('../support/render');
+
+function post(overrides = {}) {
+    return makePage(Object.assign({
+        title: 'Article Title',
+        path: '2024/01/01/article/',
+        date: moment.utc('2024-01-01T10:00:00Z'),
+        updated: moment.utc('2024-01-01T10:00:00Z'),
+        content: '<p>Rendered content</p>',
+        _content: 'Rendered content'
+    }, overrides));
+}
+
+const renderArticle = (page, { index = false, lazyCover, config } = {}) =>
+    render('common/article', { config: fixtureConfig(config), page: post(page), index, lazyCover });
+
+async function wordCountText(content, page = {}) {
+    const { $ } = await renderArticle(Object.assign({ content }, page));
+    return $('.article-meta').text();
+}
+
+const words = (n, word = 'word') => Array.from({ length: n }, () => word).join(' ');
+
+describe('layout/common/article', () => {
+    describe('reading time and word count', () => {
+        const count = async (html, page) => {
+            const match = (await wordCountText(html, page)).match(/\(About (\d+) words?\)/);
+            assert.ok(match, 'word count not rendered');
+            return Number(match[1]);
+        };
+
+        it('counts English words', async () => {
+            assert.match(await wordCountText(`<p>${words(300)}</p>`), /2 minutes read \(About 300 words\)/);
+        });
+
+        it('uses the singular form for one word', async () => {
+            assert.match(await wordCountText('<p>hello</p>'), /\(About 1 word\)/);
+        });
+
+        for (const [description, html, expected] of [
+            ['each Chinese character as a word', '<p>天地玄黄宇宙洪荒</p>', 8],
+            ['each Japanese kana and kanji as a word', '<p>日本語のテキスト</p>', 8],
+            ['Korean words separated by spaces', '<p>안녕하세요 세계</p>', 2],
+            ['Cyrillic words, not letters', '<p>один два три четыре пять</p>', 5],
+            ['Greek words', '<p>καλημέρα κόσμε</p>', 2],
+            ['accented Latin words as single words', '<p>naïve façade jalapeño</p>', 3],
+            ['Vietnamese words', '<p>Tiếng Việt rất đẹp</p>', 4],
+            ['contractions as one word', '<p>don\'t stop, it\u2019s fine</p>', 4],
+            ['mixed CJK and Latin text', '<p>使用Hexo写博客</p>', 6]
+        ]) {
+            it(`counts ${description}`, async () => {
+                assert.equal(await count(html), expected);
+            });
+        }
+
+        for (const [description, html, expected] of [
+            ['punctuation, including CJK punctuation', '<p>你好，世界。 Hello, world! — “quoted” …</p>', 7],
+            ['markup and link targets', '<p><span class="x">one</span> <a href="https://example.com/some/path">two</a></p>', 2],
+            ['HTML entities', '<p>Tom &amp; Jerry&nbsp;&mdash;&nbsp;cartoon</p>', 3],
+            ['numbers without letters', '<p>in 2024 we shipped v8</p>', 4],
+            ['code line numbers', '<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> x;</span><br><span class="line">y();</span></pre></td></tr></table></figure>', 3],
+            ['scripts, styles and comments', '<p>visible</p><script>var hidden = 1;</script><style>.hidden{}</style><!-- hidden comment -->', 1]
+        ]) {
+            it(`ignores ${description}`, async () => {
+                assert.equal(await count(html), expected);
+            });
+        }
+
+        it('counts the original content of encrypted posts', async () => {
+            assert.equal(await count('<div id="encrypted">abcdef0123456789</div><p>Enter password</p>', {
+                encrypt: true, origin: '<p>one two three</p>'
+            }), 3);
+        });
+
+        it('is hidden when article.readtime is off', async () => {
+            const { $ } = await renderArticle({}, { config: { article: { readtime: false } } });
+            assert.doesNotMatch($('.article-meta').text(), /read/);
+        });
+
+        it('requires readtime to be exactly true and omits statistics on page layouts', async () => {
+            for (const readtime of [undefined, null, false, '', 'true', 1, {}]) {
+                const { $ } = await renderArticle({}, { config: { article: { readtime } } });
+                assert.doesNotMatch($('.article-meta').text(), /About \d+ words?/);
+            }
+            assert.equal((await renderArticle({ layout: 'page' })).$('.article-meta').length, 0);
+        });
+
+        it('retains truthy encryption selection without falling back when origin is missing', async () => {
+            for (const encrypt of [true, 1, 'yes']) {
+                assert.equal(await count('<p>one two three</p>', { encrypt, origin: '<p>原文</p>' }), 2);
+                assert.equal(await count('<p>one two three</p>', { encrypt, origin: undefined }), 0);
+            }
+            for (const encrypt of [false, null, 0, '']) {
+                assert.equal(await count('<p>one two three</p>', { encrypt, origin: '<p>原文</p>' }), 3);
+            }
+        });
+
+        it('uses the site locale on the index and the first page language on posts', async () => {
+            for (const index of [true, false]) {
+                const config = fixtureConfig({ language: ['en', 'ja'], article: { licenses: null, update_time: true }, donates: [], share: { type: null }, comment: { type: null } });
+                const page = post({ lang: 'zh_CN', language: 'ru', content: '<p>' + words(300) + '</p>' });
+                const real = await createHelper(config, page);
+                const calls = [];
+                const helper = Object.assign({}, real, { _p(key, value) { calls.push([key, value]); return real._p(key, value); } });
+                await render('common/article', { config, page, helper, index });
+                assert.deepEqual(calls.map(call => call[0]), ['article.created_at', 'article.updated_at', 'article.read_time', 'article.word_count']);
+                assert.deepEqual(calls.slice(-2), [
+                    ['article.read_time', moment.duration(120, 'seconds').locale(index ? 'en' : 'zh-cn').humanize()],
+                    ['article.word_count', 300]
+                ]);
+            }
+        });
+
+        it('preserves language errors before rendering even when statistics are disabled', async () => {
+            await assert.rejects(renderArticle({}, { config: { language: [], article: { readtime: false } } }), /toLowerCase/);
+        });
+    });
+
+    describe('dates', () => {
+        const updated = moment.utc('2024-02-01T10:00:00Z');
+
+        it('shows the creation date with a machine-readable datetime', async () => {
+            const { $ } = await renderArticle();
+            const time = $('.article-meta time').first();
+            assert.equal(time.text(), '2024-01-01');
+            assert.equal(time.attr('datetime'), '2024-01-01T10:00:00.000Z');
+        });
+
+        it('shows the full date in the site format and time zone, independent of the build machine', async () => {
+            const originalTz = process.env.TZ;
+            try {
+                for (const tz of ['UTC', 'America/New_York', 'Asia/Shanghai']) {
+                    process.env.TZ = tz;
+                    const { $ } = await renderArticle({ updated: moment.utc('2024-02-01T10:00:00Z') });
+                    assert.deepEqual($('.article-meta time').map((i, el) => el.attribs.title).get(), ['2024-01-01 10:00:00', '2024-02-01 10:00:00'], tz);
+                }
+                const { $ } = await renderArticle({}, { config: { timezone: 'Asia/Tokyo' } });
+                assert.equal($('.article-meta time').attr('title'), '2024-01-01 19:00:00');
+            } finally {
+                process.env.TZ = originalTz;
+            }
+        });
+
+        it('update_time: auto shows the update date only when it differs', async () => {
+            const auto = { article: { update_time: 'auto' } };
+            assert.equal((await renderArticle({}, { config: auto })).$('.article-meta time').length, 1);
+            assert.equal((await renderArticle({ updated }, { config: auto })).$('.article-meta time').length, 2);
+        });
+
+        it('update_time: true always shows it and false never does', async () => {
+            assert.equal((await renderArticle({}, { config: { article: { update_time: true } } })).$('.article-meta time').length, 2);
+            assert.equal((await renderArticle({ updated }, { config: { article: { update_time: false } } })).$('.article-meta time').length, 1);
+        });
+    });
+
+    it('shows a pin icon for pinned posts', async () => {
+        assert.equal((await renderArticle({ top: true })).$('.fa-thumbtack').length, 1);
+        assert.equal((await renderArticle()).$('.fa-thumbtack').length, 0);
+    });
+
+    it('links categories in order separated by slashes', async () => {
+        const { $ } = await renderArticle({ categories: [{ name: 'Guides', path: 'categories/Guides/' }, { name: 'Hexo', path: 'categories/Guides/Hexo/' }] });
+        const links = $('.article-meta a.link-muted').map((i, el) => [[$(el).text(), el.attribs.href]]).get();
+        assert.deepEqual(links, [['Guides', '/categories/Guides/'], ['Hexo', '/categories/Guides/Hexo/']]);
+        assert.match($('.article-meta').text(), /Guides\u00a0\/\u00a0Hexo/);
+    });
+
+    it('does not show post metadata on pages', async () => {
+        assert.equal((await renderArticle({ layout: 'page' })).$('.article-meta').length, 0);
+    });
+
+    describe('post view', () => {
+        it('renders the title as h1, the full content, tags, licensing and share/donate', async () => {
+            const { $ } = await renderArticle({
+                content: '<p>Full</p>', excerpt: '<p>Short</p>',
+                tags: [{ name: 'hexo', path: 'tags/hexo/' }]
+            });
+            assert.equal($('h1.title').text(), 'Article Title');
+            assert.equal($('.content').html(), '<p>Full</p>');
+            assert.equal($('.article-tags a[rel="tag"]').attr('href'), '/tags/hexo/');
+            assert.equal($('.article-licensing').length, 1);
+            assert.equal($('.article-more').length, 0);
+            assert.ok($('form[action*="paypal"]').length + $('[class*="donate"]').length > 0, 'donate block rendered');
+        });
+
+        it('renders previous/next navigation', async () => {
+            const { $ } = await renderArticle({ prev: { path: 'p/', title: 'Newer' }, next: { path: 'n/', title: 'Older' } });
+            assert.equal($('.article-nav-prev').attr('href'), '/p/');
+            assert.equal($('.article-nav-prev').text(), 'Newer');
+            assert.equal($('.article-nav-next').attr('href'), '/n/');
+        });
+
+        it('renders the cover image without a link', async () => {
+            const { $ } = await renderArticle({ cover: '/img/cover.png' });
+            assert.equal($('.card-image span.image img').attr('src'), '/img/cover.png');
+            assert.equal($('.card-image a').length, 0);
+        });
+
+        it('shows the busuanzi page counter only when enabled', async () => {
+            assert.equal((await renderArticle({}, { config: { plugins: { busuanzi: true } } })).$('#busuanzi_value_page_pv').length, 1);
+            assert.equal((await renderArticle()).$('#busuanzi_value_page_pv').length, 0);
+        });
+
+        describe('Waline page view counter', () => {
+            const waline = { type: 'waline', server_url: 'https://waline.example.com' };
+            const counter = async (config, options = {}) => (await renderArticle(options.page || {}, { config, index: options.index })).$('.article-meta .waline-pageview-count');
+
+            it('shows the views of the page with the server of the Waline comments', async () => {
+                const { $ } = await renderArticle({}, { config: { comment: waline, plugins: { waline_pageview: true } } });
+                const $counter = $('.article-meta .waline-pageview-count');
+                assert.equal($counter.length, 1);
+                assert.equal($counter.attr('data-path'), '/2024/01/01/article/');
+                assert.ok($counter.parent().is('span.level-item'));
+                assert.equal($counter.parent().text(), '0\u00a0visits');
+            });
+
+            it('shows the views with its own server', async () => {
+                assert.equal((await counter({ plugins: { waline_pageview: { server_url: 'https://waline.example.com' } } })).length, 1);
+            });
+
+            it('gives the path of the page with the root of the site, encoded like the URL', async () => {
+                const $counter = await counter({ root: '/blog/', comment: waline, plugins: { waline_pageview: true } }, { page: { path: '2024/01/01/文章/' } });
+                assert.equal($counter.attr('data-path'), '/blog/2024/01/01/%E6%96%87%E7%AB%A0/');
+            });
+
+            it('uses the translation of the other page view counters', async () => {
+                const $counter = await counter({ language: 'zh-CN', comment: waline, plugins: { waline_pageview: true } });
+                assert.equal($counter.parent().text(), '0次访问');
+            });
+
+            for (const [description, config, options] of [
+                ['when the plugin is disabled', { comment: waline, plugins: { waline_pageview: false } }],
+                ['without the plugin', { comment: waline }],
+                ['without a server, from the plugin or Waline comments', { comment: { type: 'disqus', shortname: 'fixture' }, plugins: { waline_pageview: true } }],
+                ['with Waline comments without a server', { comment: { type: 'waline' }, plugins: { waline_pageview: {} } }],
+                ['in the index', { comment: waline, plugins: { waline_pageview: true } }, { index: true }]
+            ]) {
+                it(`is not shown ${description}`, async () => {
+                    assert.equal((await counter(config, options)).length, 0);
+                });
+            }
+        });
+    });
+
+    describe('index view', () => {
+        it('renders a linked title, the excerpt and a "Read more" link', async () => {
+            const { $ } = await renderArticle({ content: '<p>Full</p>', excerpt: '<p>Short</p>' }, { index: true });
+            assert.equal($('h1').length, 0);
+            assert.equal($('p.title a').attr('href'), '/2024/01/01/article/');
+            assert.equal($('.content').html(), '<p>Short</p>');
+            assert.equal($('.article-more').attr('href'), '/2024/01/01/article/#more');
+            assert.equal($('.article-more').text(), 'Read more');
+        });
+
+        it('renders the full content when there is no excerpt', async () => {
+            const { $ } = await renderArticle({ content: '<p>Full</p>' }, { index: true });
+            assert.equal($('.content').html(), '<p>Full</p>');
+            assert.equal($('.article-more').length, 0);
+        });
+
+        it('omits tags, licensing, navigation and comments', async () => {
+            const { $ } = await renderArticle({ tags: [{ name: 't', path: 'tags/t/' }], prev: { path: 'p/', title: 'P' } }, {
+                index: true, config: { comment: { type: 'disqus', shortname: 'x' } }
+            });
+            for (const selector of ['.article-tags', '.article-licensing', '.post-navigation', '#comments']) {
+                assert.equal($(selector).length, 0, selector);
+            }
+        });
+
+        it('links the cover image to the post', async () => {
+            const { $ } = await renderArticle({ cover: '/img/cover.png' }, { index: true });
+            assert.equal($('.card-image a').attr('href'), '/2024/01/01/article/');
+        });
+
+        it('links to page.link instead of the path when set', async () => {
+            const { $ } = await renderArticle({ link: 'https://example.com/elsewhere' }, { index: true });
+            assert.equal($('p.title a').attr('href'), 'https://example.com/elsewhere');
+        });
+    });
+
+    describe('cover image', () => {
+        const coverImage = async (page, options) => (await renderArticle(Object.assign({ cover: '/img/cover.png' }, page), options)).$('.card-image img');
+
+        it('is loaded first on posts, where it is at the top of the page', async () => {
+            const img = await coverImage({});
+            assert.equal(img.attr('fetchpriority'), 'high');
+            assert.equal(img.attr('loading'), undefined);
+        });
+
+        it('is loaded when it is about to be scrolled to with lazyCover', async () => {
+            const img = await coverImage({}, { index: true, lazyCover: true });
+            assert.equal(img.attr('loading'), 'lazy');
+            assert.equal(img.attr('decoding'), 'async');
+            assert.equal(img.attr('fetchpriority'), undefined);
+        });
+
+        it('only loads the first cover of the index right away', async () => {
+            const posts = [{}, { cover: '/img/a.png' }, {}, { cover: '/img/b.png' }, { cover: '/img/c.png' }]
+                .map((overrides, i) => post(Object.assign({ path: `2024/01/0${i + 1}/article/` }, overrides)));
+            const { $ } = await render('index', { config: fixtureConfig(), page: makePage({ layout: 'index', posts, total: 1 }) });
+            assert.deepEqual($('.card-image img').map((i, el) => [[el.attribs.src, el.attribs.loading || null, el.attribs.fetchpriority || null]]).get(), [
+                ['/img/a.png', null, 'high'],
+                ['/img/b.png', 'lazy', null],
+                ['/img/c.png', 'lazy', null]
+            ]);
+        });
+    });
+
+    describe('outdated notice', () => {
+        const enabled = (notice = {}) => ({ config: { article: { outdated_notice: Object.assign({ enable: true }, notice) } } });
+        const daysAgo = days => moment().subtract(days, 'days');
+
+        it('is not rendered by default', async () => {
+            const { $ } = await renderArticle({});
+            assert.equal($('.article-outdated').length, 0);
+        });
+
+        it('is not rendered when disabled', async () => {
+            const { $ } = await renderArticle({}, { config: { article: { outdated_notice: { enable: false, days: 1 } } } });
+            assert.equal($('.article-outdated').length, 0);
+        });
+
+        it('is shown on an old post with its last update date and the age template', async () => {
+            const { $ } = await renderArticle({ date: moment.utc('2023-01-01T10:00:00Z') }, enabled());
+            const $notice = $('.article-outdated');
+            assert.equal($notice.length, 1);
+            assert.ok($notice.hasClass('message') && $notice.hasClass('is-warning'));
+            assert.equal($notice.attr('hidden'), undefined);
+            assert.equal($notice.attr('data-outdated-days'), '365');
+            assert.equal($notice.find('time').attr('datetime'), '2024-01-01T10:00:00.000Z');
+            assert.equal($notice.find('.article-outdated-text').text(),
+                'This post was last updated on 2024-01-01. Some of its content may be outdated.');
+            assert.equal($notice.find('.article-outdated-text').attr('data-template'),
+                'This post was last updated %s. Some of its content may be outdated.');
+        });
+
+        it('falls back to the creation date without an update date', async () => {
+            const { $ } = await renderArticle({ updated: undefined }, enabled());
+            assert.equal($('.article-outdated time').attr('datetime'), '2024-01-01T10:00:00.000Z');
+        });
+
+        it('is rendered hidden on a post not outdated at build time, for the browser to show later', async () => {
+            const { $ } = await renderArticle({ date: daysAgo(40), updated: daysAgo(10) }, enabled({ days: 30 }));
+            assert.equal($('.article-outdated').length, 1);
+            assert.notEqual($('.article-outdated').attr('hidden'), undefined);
+        });
+
+        it('uses the configured number of days', async () => {
+            const { $ } = await renderArticle({ date: daysAgo(40), updated: daysAgo(31) }, enabled({ days: 30 }));
+            assert.equal($('.article-outdated').attr('hidden'), undefined);
+            assert.equal($('.article-outdated').attr('data-outdated-days'), '30');
+        });
+
+        it('is translated', async () => {
+            const { $ } = await renderArticle({ lang: 'zh-CN' }, enabled());
+            assert.equal($('.article-outdated-text').attr('data-template'), '本文最后更新于%s，其中的部分内容可能已经过时。');
+        });
+
+        for (const [description, page, options] of [
+            ['index excerpts', {}, { index: true }],
+            ['pages', { layout: 'page' }, {}],
+            ['posts turning it off in their front-matter', { outdated_notice: false }, {}]
+        ]) {
+            it(`is not rendered on ${description}`, async () => {
+                const { $ } = await renderArticle(page, Object.assign(enabled(), options));
+                assert.equal($('.article-outdated').length, 0);
+            });
+        }
+    });
+
+    it('renders the comment section on posts when configured', async () => {
+        const { $ } = await renderArticle({}, { config: { comment: { type: 'disqus', shortname: 'fixture' } } });
+        assert.equal($('#comments h3').text(), 'Comments');
+    });
+});
