@@ -3,12 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ''
-description: ''
-keywords:
-author: John Doe
-language: en
+title: 星罗杂记-点滴记录网络生活
+subtitle: 技术与生活，记录每一次探索
+description: 技术与生活，记录每一次探索
+author: 星罗杂记
+language: zh-CN
 timezone: ''
 
 # URL

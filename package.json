@@ -14,7 +14,7 @@
   "dependencies": {
     "bulma-stylus": "^0.8.0",
     "hexo": "^8.0.0",
-    "hexo-component-inferno": "^5.1.0",
+    "hexo-component-inferno": "^5.0.0",
     "hexo-generator-archive": "^2.0.0",
     "hexo-generator-category": "^2.0.0",
     "hexo-generator-index": "^4.0.0",
@@ -25,6 +25,10 @@
     "hexo-renderer-stylus": "^3.0.1",
     "hexo-server": "^3.0.0",
     "hexo-theme-landscape": "^1.0.0",
-    "hexo-util": "^3.2.0"
+    "hexo-util": "^3.2.0",
+    "inferno": "^8.2.3",
+    "inferno-create-element": "^8.2.3",
+    "inferno-server": "^8.2.3",
+    "semver": "^7.5.4"
   }
 }

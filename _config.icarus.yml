@@ -5,7 +5,7 @@ variant: default
 # Color scheme of the default and m3e variants, can be "light", "dark" or "auto" (light or dark following the setting of the browser or system of each visitor). Can be set per page in the front-matter or in layout configuration files such as _config.post.yml. Ignored by the cyberpunk variant, which is always dark
 appearance: light
 # Path or URL to the website's logo
-logo: /img/logo.svg
+logo: https://jaaxin.oss-cn-beijing.aliyuncs.com/wp-content/uploads/2025/04/202504151315562.png
 # Path or URL to the logo shown instead of the logo image when the default or m3e variant looks dark (see appearance), and always by the cyberpunk variant. Without it, the theme's own logo switches to /img/logo-dark.svg and other logos stay the same
 logo_dark: 
 # Page metadata configurations
@@ -111,10 +111,10 @@ navbar:
     sticky: false
     # Navigation menu items
     menu:
-        Home: /
-        Archives: /archives
-        Categories: /categories
-        Tags: /tags
+        首页: /
+        归档: /archives
+        分类: /categories
+        标签: /tags
         About: /about
     # Links to be shown on the right of the navigation bar
     links:
@@ -181,49 +181,14 @@ search:
     index_pages: true
 # Comment plugin configurations
 # https://ppoffice.github.io/hexo-theme-icarus/categories/Plugins/Comment/
-comment:
-    type: disqus
-    # Disqus shortname
-    shortname: ''
+comment: {}
 # Donate plugin configurations
 # https://ppoffice.github.io/hexo-theme-icarus/categories/Plugins/Donation/
-donates:
-    # "Afdian.net" donate button configurations
-    -
-        type: afdian
-        # URL to the "Afdian.net" personal page
-        url: ''
-    # Alipay donate button configurations
-    -
-        type: alipay
-        # Alipay qrcode image URL
-        qrcode: ''
-    # "Buy me a coffee" donate button configurations
-    -
-        type: buymeacoffee
-        # URL to the "Buy me a coffee" page
-        url: ''
-    # Patreon donate button configurations
-    -
-        type: patreon
-        # URL to the Patreon page
-        url: ''
-    # Paypal donate button configurations
-    -
-        type: paypal
-        # Paypal business ID or email address
-        business: ''
-        # Currency code
-        currency_code: USD
-    # Wechat donate button configurations
-    -
-        type: wechat
-        # Wechat qrcode image URL
-        qrcode: ''
+donates: []
 # Share plugin configurations
 # https://ppoffice.github.io/hexo-theme-icarus/categories/Plugins/Share/
 share:
-    type: sharethis
+    type: web_share
     # URL to the ShareThis share plugin script
     install_url: ''
 # Sidebar configurations.
@@ -240,25 +205,35 @@ sidebar:
 # Sidebar widget configurations. Set to null to disable all widgets
 # http://ppoffice.github.io/hexo-theme-icarus/categories/Widgets/
 widgets:
-    # 左侧：个人资料
+        # 左侧：个人资料
     -
         position: left
         type: profile
         author: 星罗杂记
         author_title: 技术与生活，记录每一次探索
         location: ''
-        avatar: /img/avatar.png
+        avatar: https://jaaxin.oss-cn-beijing.aliyuncs.com/wp-content/uploads/2026/11/Gemini_Generated_Image_hl5wjqhl5wjqhl5w.jpg
         avatar_rounded: true
         gravatar: ''
         follow_link: ''
         social_links: {}
-    # 左侧：文章目录（文章页面显示）
+
+    # 左侧：9:16 图片卡片
+    -
+        position: left
+        type: image
+        image: https://jaaxin.oss-cn-beijing.aliyuncs.com/wp-content/uploads/2026/11/Gemini_Generated_Image_fdc7tpfdc7tpfdc7.jpg
+        alt: 星罗杂记图片
+        link: http://x.luo.show/
+
+    # 左侧：文章目录
     -
         position: left
         type: toc
         index: true
         collapsed: true
         depth: 3
+
     # 左侧：友情链接
     -
         position: left
