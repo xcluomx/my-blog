@@ -242,6 +242,14 @@ widgets:
             Hexo: https://hexo.io
             Icarus: https://github.com/ppoffice/hexo-theme-icarus
     # 右侧：分类
+     
+    -
+        position: right
+        type: image
+        image: https://jaaxin.oss-cn-beijing.aliyuncs.com/wp-content/uploads/2026/11/2026110206055093.jpg
+        alt: 星罗杂记
+        link: http://x.luo.show/
+    # 右侧顶部：图片展示
     -
         position: right
         type: categories
